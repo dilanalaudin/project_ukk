@@ -8,7 +8,6 @@ class StoreSiswaRequest extends FormRequest
 {
     public function authorize()
     {
-        // Hanya admin boleh menyimpan siswa
         return $this->user() && ($this->user()->role ?? '') === 'admin';
     }
 
@@ -20,11 +19,13 @@ class StoreSiswaRequest extends FormRequest
             'nama_lengkap'  => 'required|string|max:255',
             'kelas'         => 'required|string|max:50',
             'jurusan'       => 'nullable|string|max:100',
+            'email'         => 'nullable|email|unique:siswas,email',
             'alamat'        => 'nullable|string',
             'no_hp'         => 'nullable|string|max:20',
             'tgl_lahir'     => 'nullable|date',
             'jenis_kelamin' => 'nullable|string|max:20',
             'wali_kelas'    => 'nullable|exists:users,id',
+            'status'        => 'nullable|string|max:50',
         ];
     }
 }

@@ -19,3 +19,17 @@ class AdminUserSeeder extends Seeder
         );
     }
 }
+class SiswaSeeder extends Seeder
+{
+    public function run()
+    {
+        User::updateOrCreate(
+            ['email' => 'user@.com'],
+            [
+                'name' => 'user',
+                'password' => Hash::make('user123'),
+                'role' => 'siswa', // pastikan kolom role ada di migration users
+            ]
+        );
+    }
+}

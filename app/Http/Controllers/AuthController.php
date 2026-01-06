@@ -4,41 +4,81 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use App\Models\User;
 
 class AuthController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('guest')->except('logout');
-    }
-
     public function showLogin()
     {
-        return view('auth.login'); // lebih konsisten daripada welcome
+        return view('auth.login');
+    }
+
+    public function showRegister()
+    {
+        return view('auth.register');
     }
 
     public function login(Request $request)
     {
-        $credentials = $request->validate([
-            'email' => 'required|email',
-            'password' => 'required|string',
+        $request->validate([
+            'email' => ['required'],
+            'password' => ['required'],
         ]);
 
-        $remember = $request->boolean('remember');
+        $loginField = filter_var($request->email, FILTER_VALIDATE_EMAIL)
+            ? 'email'
+            : 'name'; // login username
 
-        if (Auth::attempt($credentials, $remember)) {
+        $credentials = [
+            $loginField => $request->email,
+            'password' => $request->password
+        ];
+
+        if (Auth::attempt($credentials, $request->remember)) {
+
             $request->session()->regenerate();
-            return redirect()->intended('/dashboard');
+
+            // Jika role admin → masuk dashboard admin
+            if (Auth::user()->role === 'admin') {
+                return redirect()->route('admin.dashboard');
+            }
+
+            return redirect()->route('dashboard');
         }
 
-        return back()->withErrors(['email' => 'Email atau password salah.'])->withInput($request->only('email'));
+        return back()->withErrors([
+            'email' => 'Email/Username atau password salah.',
+        ]);
     }
 
     public function logout(Request $request)
     {
         Auth::logout();
+
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect()->route('home');
+
+        return redirect()->route('login');
+    }
+
+    public function register(Request $request)
+    {
+        $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            'password' => ['required', 'string', 'min:6', 'confirmed'],
+        ]);
+
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'role' => 'siswa',
+        ]);
+
+        Auth::login($user);
+
+        return redirect()->route('dashboard');
     }
 }

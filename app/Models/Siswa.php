@@ -10,7 +10,7 @@ class Siswa extends Model
     use HasFactory;
 
     protected $table = 'siswas';
-    protected $primaryKey = 'siswa_id';
+    protected $primaryKey = 'id';
     public $incrementing = true;
     protected $keyType = 'int';
 
@@ -36,12 +36,18 @@ class Siswa extends Model
     // Relasi ke User (akun siswa)
     public function user()
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(User::class, 'user_id', 'id');
     }
 
-    // Relasi ke wali kelas (juga tabel users)
+    // Relasi ke wali kelas
     public function waliKelas()
     {
-        return $this->belongsTo(User::class, 'wali_kelas');
+        return $this->belongsTo(User::class, 'wali_kelas', 'id');
+    }
+
+    // Relasi ke tabel KASUS
+    public function kasus()
+    {
+        return $this->hasMany(Kasus::class, 'siswa_id', 'id');
     }
 }

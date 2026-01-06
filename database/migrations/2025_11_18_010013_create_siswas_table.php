@@ -10,7 +10,7 @@ return new class extends Migration
     {
         if (! Schema::hasTable('siswas')) {
             Schema::create('siswas', function (Blueprint $table) {
-                $table->id('siswa_id');
+                $table->id();
                 $table->unsignedBigInteger('user_id')->nullable()->index();
                 $table->string('nis')->unique();
                 $table->string('nama_lengkap');

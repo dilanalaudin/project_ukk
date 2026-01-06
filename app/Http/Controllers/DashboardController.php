@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Carbon;
 use App\Models\Siswa;
+use App\Models\Konseling;
+use App\Models\Kasus;
 
 class DashboardController extends Controller
 {
@@ -27,6 +29,9 @@ class DashboardController extends Controller
             'konselingTerjadwal' => 0,
             'siswa' => null,
             'catatanCount' => 0,
+            'kasusCount' => 0,
+            'totalPoin' => 0,
+            'kasusList' => [],
         ];
 
         if (Schema::hasTable((new Siswa)->getTable())) {
@@ -50,13 +55,21 @@ class DashboardController extends Controller
         }
 
         if (($user->role ?? '') === 'admin') {
-            if (Schema::hasTable('jadwals')) {
-                $data['konselingTerjadwal'] = DB::table('jadwals')->whereDate('tanggal', '>=', Carbon::today())->count();
+            // Count scheduled counseling events using konselings with type 'jadwal'
+            if (Schema::hasTable('konselings')) {
+                $data['konselingTerjadwal'] = DB::table('konselings')->where('type', Konseling::TYPE_JADWAL)->whereDate('tanggal', '>=', Carbon::today())->count();
             } elseif (Schema::hasTable('schedules')) {
                 $data['konselingTerjadwal'] = DB::table('schedules')->whereDate('date', '>=', Carbon::today())->count();
             }
 
-            return view('dashboard', $data);
+            // Recent cases for today to show in admin activity
+            if (Schema::hasTable('kasus')) {
+                $data['todayKasus'] = Kasus::with('siswa')->whereDate('tanggal', Carbon::today())->latest()->take(5)->get();
+            } else {
+                $data['todayKasus'] = collect();
+            }
+
+            return view('admin.dashboard', $data);
         }
 
         $siswaModel = null;
@@ -71,18 +84,26 @@ class DashboardController extends Controller
 
         if ($siswaModel) {
             if (Schema::hasTable('konselings')) {
-                $data['catatanCount'] = DB::table('konselings')->where('siswa_id', $siswaModel->id)->count();
+                $data['catatanCount'] = DB::table('konselings')->where('siswa_id', $siswaModel->id)->where(function($q){$q->where('type', Konseling::TYPE_NOTE)->orWhere('type', Konseling::TYPE_KONSELING);})->count();
             } elseif (Schema::hasTable('notes')) {
                 $data['catatanCount'] = DB::table('notes')->where('siswa_id', $siswaModel->id)->count();
             }
 
-            if (Schema::hasTable('jadwals')) {
-                $data['konselingTerjadwal'] = DB::table('jadwals')->where('siswa_id', $siswaModel->id)->whereDate('tanggal', '>=', Carbon::today())->count();
+            if (Schema::hasTable('konselings')) {
+                $data['konselingTerjadwal'] = DB::table('konselings')->where('type', Konseling::TYPE_JADWAL)->where('siswa_id', $siswaModel->id)->whereDate('tanggal', '>=', Carbon::today())->count();
             } elseif (Schema::hasTable('schedules')) {
                 $data['konselingTerjadwal'] = DB::table('schedules')->where('siswa_id', $siswaModel->id)->whereDate('date', '>=', Carbon::today())->count();
             }
+
+            // Hitung kasus dan poin pelanggaran
+            if (Schema::hasTable('kasus')) {
+                $data['kasusCount'] = Kasus::where('siswa_id', $siswaModel->id)->count();
+                $data['totalPoin'] = Kasus::where('siswa_id', $siswaModel->id)->sum('poin');
+                $data['kasusList'] = Kasus::where('siswa_id', $siswaModel->id)->latest()->take(5)->get();
+            }
         }
 
-        return view('dashboard', $data);
+        // Jika bukan admin (siswa / user lain), tampilkan dashboard siswa
+        return view('siswa.dashboard', $data);
     }
 }

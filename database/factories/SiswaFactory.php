@@ -17,6 +17,7 @@ class SiswaFactory extends Factory
             'nama_lengkap' => $this->faker->name(),
             'kelas' => $this->faker->randomElement(['X', 'XI', 'XII']),
             'jurusan' => $this->faker->randomElement(['RPL', 'TKR', 'TPM', 'TITL']),
+            'alamat' => $this->faker->address(),
             'email' => $this->faker->unique()->safeEmail(),
             'no_hp' => $this->faker->phoneNumber(),
             'tgl_lahir' => $this->faker->date(),

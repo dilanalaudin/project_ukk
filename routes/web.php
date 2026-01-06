@@ -1,130 +1,111 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth; // Penting: Tambahkan Fasad Auth
-use Illuminate\Support\Facades\Hash; // Untuk hashing password
-use App\Models\User; // Model User
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\SiswaController;
+use App\Http\Controllers\VisiMisiController;
+use App\Http\Controllers\KasusController;
+use App\Http\Controllers\KonselingController;
 
 /*
 |--------------------------------------------------------------------------
-| Web Routes
+| Root Route (otomatis arahkan sesuai role)
 |--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
-|
 */
-
-// Rute Default: Menampilkan halaman welcome untuk guest; jika sudah login arahkan ke dashboard
+// Root route: map `/` to `/welcome` for convenience, but preserve `/welcome` as main page
 Route::get('/', function () {
-    if (Auth::check()) {
-        return redirect()->route('dashboard');
+    return redirect()->route('home');
+});
+
+Route::get('/welcome', function () {
+    // Tampilkan halaman welcome untuk pengunjung yang belum login
+    if (!auth()->check()) {
+        return view('welcome');
     }
-    return view('welcome'); // tampilkan welcome sebelum login
+
+    // Jika admin → ke dashboard admin
+    if (auth()->user()->role === 'admin') {
+        return redirect()->route('admin.dashboard');
+    }
+
+    // Jika user biasa → dashboard umum
+    return redirect()->route('dashboard');
 })->name('home');
 
-// Route khusus welcome (opsional)
-Route::get('/welcome', function () {
-    return view('welcome');
-})->name('welcome');
+/*
+|--------------------------------------------------------------------------
+| Authentication Routes
+|--------------------------------------------------------------------------
+*/
+Route::controller(AuthController::class)->group(function () {
+    Route::get('/login', 'showLogin')->name('login')->middleware('guest');
+    Route::post('/login', 'login')->name('login.post')->middleware('guest');
 
-// === Rute Autentikasi ===
+    Route::get('/register', 'showRegister')->name('register')->middleware('guest');
+    Route::post('/register', 'register')->name('register.post')->middleware('guest');
 
-// 1. Form Login
-Route::get('/login', function () {
-    // Jika user sudah login, arahkan langsung ke dashboard
-    if (Auth::check()) {
-        return redirect()->route('dashboard');
-    }
-    return view('auth.login');
-})->name('login');
+    Route::post('/logout', 'logout')->name('logout')->middleware('auth');
+});
 
-// 2. Proses Login
-Route::post('/login', function (Request $request) {
-    // Validasi input
-    $credentials = $request->validate([
-        'email' => ['required', 'email'],
-        'password' => ['required'],
-    ]);
+/*
+|--------------------------------------------------------------------------
+| Dashboard for authenticated users (non-admin/siswa)
+|--------------------------------------------------------------------------
+*/
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware(['auth', 'role:siswa'])
+    ->name('dashboard');
 
-    // Mencoba login menggunakan mekanisme Auth::attempt() Laravel
-    if (Auth::attempt($credentials, $request->boolean('remember'))) {
-        // Regenerate session ID untuk keamanan
-        $request->session()->regenerate();
-
-        // Redirect ke rute dashboard atau intended
-        return redirect()->intended('/dashboard'); 
-    }
-
-    // Login Gagal: Kembali ke halaman sebelumnya dengan pesan error
-    return back()->withErrors([
-        'email' => 'Email atau Password yang Anda masukkan salah.',
-    ])->onlyInput('email');
-})->name('login.post');
-
-
-// 3. Register (GET)
-Route::get('/register', function () {
-    // Jika user sudah login, arahkan langsung ke dashboard
-    if (Auth::check()) {
-        return redirect()->route('dashboard');
-    }
-    return view('auth.register');
-})->name('register');
-
-// 4. Register (POST)
-Route::post('/register', function (Request $request) {
-    // Validasi input registrasi
-    $data = $request->validate([
-        'name' => ['required', 'string', 'max:255'],
-        'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-        'password' => ['required', 'string', 'confirmed', 'min:6'],
-    ]);
-
-    // Buat user
-    $user = User::create([
-        'name' => $data['name'],
-        'email' => $data['email'],
-        'password' => Hash::make($data['password']),
-    ]);
-
-    // Login otomatis setelah registrasi
-    Auth::login($user);
-    $request->session()->regenerate();
-
-    return redirect()->intended('/dashboard');
-})->name('register.post');
-
-
-// 5. Rute Dashboard (Hanya bisa diakses jika sudah login)
-Route::middleware(['auth'])->group(function () {
-    Route::get('/dashboard', function () {
-        // Anda bisa mengambil data pengguna yang sedang login
-        // $user = Auth::user(); 
-        return view('dashboard');
-    })->name('dashboard');
-    
-    // 6. Logout
-    Route::post('/logout', function (Request $request) {
-        // Method Auth::logout() menghapus sesi autentikasi
-        Auth::logout();
+/*
+|--------------------------------------------------------------------------
+| Siswa Routes (student area) – under prefix /siswa
+|--------------------------------------------------------------------------
+*/
+Route::prefix('siswa')
+    ->name('siswa.')
+    ->middleware(['auth', 'role:siswa'])
+    ->group(function () {
+        Route::get('jadwals', [App\Http\Controllers\Siswa\JadwalController::class, 'index'])->name('jadwals.index');
+        Route::get('notes', [App\Http\Controllers\Siswa\KonselingController::class, 'notes'])->name('notes.index');
         
-        // Hapus sesi lama dan buat sesi baru
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        // Pengajuan Konseling
+        Route::get('konseling', [App\Http\Controllers\Siswa\KonselingController::class, 'index'])->name('konseling.index');
+        Route::get('konseling/create', [App\Http\Controllers\Siswa\KonselingController::class, 'create'])->name('konseling.create');
+        Route::post('konseling', [App\Http\Controllers\Siswa\KonselingController::class, 'store'])->name('konseling.store');
+        Route::get('konseling/{konseling}', [App\Http\Controllers\Siswa\KonselingController::class, 'show'])->name('konseling.show');
+        
+        // Riwayat Konseling
+        Route::get('konseling-history', [App\Http\Controllers\Siswa\KonselingController::class, 'history'])->name('konseling.history');
+    });
 
-        // Redirect kembali ke halaman login
-        return redirect('/login');
-    })->name('logout');
-});
+/*
+|--------------------------------------------------------------------------
+| Admin Routes (prefix admin) — protected by auth + isAdmin
+|--------------------------------------------------------------------------
+*/
+Route::prefix('admin')
+    ->name('admin.')
+    ->middleware(['auth'])
+    ->group(function () {
 
+        // Admin Dashboard (path: /admin/dashboard, name: admin.dashboard)
+        // Must use admin.dashboard view, not the root dashboard view
+        Route::get('dashboard', function () {
+            return app(DashboardController::class)->index(request());
+        })->name('dashboard');
 
-// === Rute Admin/Resource ===
-Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () {
-    // Pastikan SiswaController di-import jika Anda menggunakannya
-    // use App\Http\Controllers\SiswaController; // Tambahkan ini jika belum ada
+        // CRUD Siswa (path: /admin/siswas/*, names: admin.siswas.*)
+        Route::resource('siswas', SiswaController::class);
 
-    Route::resource('siswas', \App\Http\Controllers\SiswaController::class);
-});
+        // Visi Misi Management (path: /admin/visi-misi/*)
+        Route::get('visi-misi', [VisiMisiController::class, 'index'])->name('visi-misi.index');
+        Route::get('visi-misi/edit', [VisiMisiController::class, 'edit'])->name('visi-misi.edit');
+        Route::put('visi-misi', [VisiMisiController::class, 'update'])->name('visi-misi.update');
+
+        // Catatan Kasus Management (path: /admin/kasus/*)
+        Route::resource('kasus', KasusController::class);
+
+        // Konseling Management (path: /admin/konseling/*)
+        Route::resource('konseling', KonselingController::class, ['except' => ['create', 'store']]);
+    });

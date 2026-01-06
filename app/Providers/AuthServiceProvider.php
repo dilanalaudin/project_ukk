@@ -9,19 +9,16 @@ use App\Policies\SiswaPolicy;
 
 class AuthServiceProvider extends ServiceProvider
 {
-    /**
-     * The policy mappings for the application.
-     *
-     * @var array<class-string, class-string>
-     */
-    protected $policies = [
-        Siswa::class => SiswaPolicy::class,
+      protected $policies = [
+        // ...existing mappings...
+        \App\Models\Siswa::class => \App\Policies\SiswaPolicy::class,
     ];
 
     public function boot()
     {
         $this->registerPolicies();
 
-        Gate::define('isAdmin', fn ($user) => ($user->role ?? '') === 'admin');
+        // Gate untuk middleware can:isAdmin
+        Gate::define('isAdmin', fn($user) => $user && ($user->role ?? '') === 'admin');
     }
 }

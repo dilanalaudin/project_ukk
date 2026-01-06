@@ -31,6 +31,10 @@
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
                     <span>Catatan Kasus</span>
                 </a>
+                <a href="{{ route('admin.visi-misi.index') }}" class="flex items-center p-3 rounded-lg hover:bg-indigo-700 transition-colors">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C6.5 6.253 2 10.753 2 16.5S6.5 26.75 12 26.75s10-4.5 10-10.25S17.5 6.253 12 6.253z"></path></svg>
+                    <span>Visi Misi</span>
+                </a>
                 <a href="#" class="flex items-center p-3 rounded-lg hover:bg-indigo-700 transition-colors">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.405L4 17h5m6 0v2a3 3 0 11-6 0v-2"></path></svg>
                     <span>Layanan BK</span>
@@ -68,7 +72,7 @@
                     <div class="bg-white p-6 rounded-xl shadow-lg flex items-center justify-between border-l-4 border-indigo-500">
                         <div>
                             <p class="text-sm font-medium text-gray-500">Total Siswa</p>
-                            <p class="text-3xl font-bold text-gray-900 mt-1">1.250</p>
+                            <p class="text-3xl font-bold text-gray-900 mt-1">{{ number_format($totalSiswa ?? 0, 0, ',', '.') }}</p>
                         </div>
                         <svg class="w-10 h-10 text-indigo-400 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20v-2h-.09a4.52 4.52 0 00-3.92-3.834M12 9a3 3 0 100-6 3 3 0 000 6z"></path></svg>
                     </div>
@@ -76,7 +80,7 @@
                     <div class="bg-white p-6 rounded-xl shadow-lg flex items-center justify-between border-l-4 border-yellow-500">
                         <div>
                             <p class="text-sm font-medium text-gray-500">Kasus Bulan Ini</p>
-                            <p class="text-3xl font-bold text-gray-900 mt-1">45</p>
+                            <p class="text-3xl font-bold text-gray-900 mt-1">{{ number_format($kasusBulanIni ?? 0, 0, ',', '.') }}</p>
                         </div>
                         <svg class="w-10 h-10 text-yellow-400 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
                     </div>
@@ -84,7 +88,7 @@
                     <div class="bg-white p-6 rounded-xl shadow-lg flex items-center justify-between border-l-4 border-red-500">
                         <div>
                             <p class="text-sm font-medium text-gray-500">Pelanggaran Berat</p>
-                            <p class="text-3xl font-bold text-gray-900 mt-1">8</p>
+                            <p class="text-3xl font-bold text-gray-900 mt-1">{{ number_format($pelanggaranBerat ?? 0, 0, ',', '.') }}</p>
                         </div>
                         <svg class="w-10 h-10 text-red-400 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.398 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                     </div>
@@ -92,7 +96,7 @@
                     <div class="bg-white p-6 rounded-xl shadow-lg flex items-center justify-between border-l-4 border-green-500">
                         <div>
                             <p class="text-sm font-medium text-gray-500">Konseling Terjadwal</p>
-                            <p class="text-3xl font-bold text-gray-900 mt-1">12</p>
+                            <p class="text-3xl font-bold text-gray-900 mt-1">{{ number_format($konselingTerjadwal ?? 0, 0, ',', '.') }}</p>
                         </div>
                         <svg class="w-10 h-10 text-green-400 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h.01M16 12h.01M21 7v12a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h14a2 2 0 012 2z"></path></svg>
                     </div>
@@ -136,6 +140,27 @@
                                 </tr>
                                 </tbody>
                         </table>
+                    </div>
+                </div>
+
+                <!-- Visi Misi Section -->
+                <div class="bg-white p-6 rounded-xl shadow-lg mt-8">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-semibold text-gray-800">Visi Misi BK</h3>
+                        <a href="{{ route('admin.visi-misi.index') }}" class="text-indigo-600 hover:text-indigo-800 text-sm font-medium">Lihat Lengkap →</a>
+                    </div>
+                    
+                    @php $visiMisi = \App\Models\VisiMisi::first(); @endphp
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="font-semibold text-gray-700 mb-2">Visi</h4>
+                            <p class="text-gray-600 text-sm leading-relaxed">{{ $visiMisi->visi ?? 'Belum diisi' }}</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-gray-700 mb-2">Misi</h4>
+                            <p class="text-gray-600 text-sm leading-relaxed whitespace-pre-wrap">{{ $visiMisi->misi ?? 'Belum diisi' }}</p>
+                        </div>
                     </div>
                 </div>
 
