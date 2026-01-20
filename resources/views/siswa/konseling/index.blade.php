@@ -9,9 +9,7 @@
         <a href="{{ route('siswa.konseling.create') }}" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">+ Ajukan Konseling</a>
     </div>
 
-    @if (session('success'))
-        <div class="mb-4 p-3 bg-green-100 text-green-800 rounded-md">{{ session('success') }}</div>
-    @endif
+
 
     <div class="bg-white rounded-lg shadow overflow-hidden">
         <table class="w-full">
@@ -29,10 +27,7 @@
                         <td class="px-6 py-4 text-sm">{{ $item->tanggal?->format('d M Y') ?? '-' }}</td>
                         <td class="px-6 py-4 text-sm font-medium">{{ ucfirst($item->topik ?? 'N/A') }}</td>
                         <td class="px-6 py-4 text-sm">
-                            <span class="px-2 py-1 rounded-full text-xs font-semibold 
-                                {{ $item->status === 'disetujui' ? 'bg-green-100 text-green-800' : ($item->status === 'ditolak' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800') }}">
-                                {{ ucfirst($item->status) }}
-                            </span>
+                            <x-model-status-badge :status="$item->status" />
                         </td>
                         <td class="px-6 py-4 text-sm space-x-2">
                             <a href="{{ route('siswa.konseling.show', $item) }}" class="text-indigo-600 hover:text-indigo-800">Lihat</a>

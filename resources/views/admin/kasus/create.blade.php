@@ -15,7 +15,9 @@
                 <select name="siswa_id" class="mt-1 block w-full border border-gray-300 rounded-md p-2" required>
                     <option value="">Pilih Siswa</option>
                     @foreach($siswas as $siswa)
-                        <option value="{{ $siswa->id }}">{{ $siswa->nama_lengkap }} ({{ $siswa->kelas }})</option>
+                        <option value="{{ $siswa->id }}" {{ old('siswa_id') == $siswa->id ? 'selected' : '' }}>
+                            {{ $siswa->nama_lengkap }} ({{ $siswa->kelas }})
+                        </option>
                     @endforeach
                 </select>
                 @error('siswa_id') <span class="text-sm text-red-500">{{ $message }}</span> @enderror
@@ -23,7 +25,7 @@
 
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700">Jenis Kasus</label>
-                <input type="text" name="jenis" class="mt-1 block w-full border border-gray-300 rounded-md p-2" placeholder="Contoh: Bolos, Perundungan" required>
+                <input type="text" name="jenis" value="{{ old('jenis') }}" class="mt-1 block w-full border border-gray-300 rounded-md p-2" placeholder="Contoh: Bolos, Perundungan" required>
                 @error('jenis') <span class="text-sm text-red-500">{{ $message }}</span> @enderror
             </div>
 
@@ -31,15 +33,16 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Tingkat Keparahan</label>
                     <select name="severity" class="mt-1 block w-full border border-gray-300 rounded-md p-2" required>
-                        <option value="ringan">Ringan</option>
-                        <option value="berat">Berat</option>
+                        <option value="ringan" {{ old('severity') == 'ringan' ? 'selected' : '' }}>Ringan</option>
+                        <option value="sedang" {{ old('severity') == 'sedang' ? 'selected' : '' }}>Sedang</option>
+                        <option value="berat" {{ old('severity') == 'berat' ? 'selected' : '' }}>Berat</option>
                     </select>
                     @error('severity') <span class="text-sm text-red-500">{{ $message }}</span> @enderror
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Poin Pelanggaran</label>
-                    <input type="number" name="poin" class="mt-1 block w-full border border-gray-300 rounded-md p-2" min="0" max="100" value="0" required>
+                    <input type="number" name="poin" value="{{ old('poin', 0) }}" class="mt-1 block w-full border border-gray-300 rounded-md p-2" min="0" max="100" required>
                     @error('poin') <span class="text-sm text-red-500">{{ $message }}</span> @enderror
                 </div>
             </div>
@@ -48,15 +51,15 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Status</label>
                     <select name="status" class="mt-1 block w-full border border-gray-300 rounded-md p-2" required>
-                        <option value="proses">Proses</option>
-                        <option value="selesai">Selesai</option>
+                        <option value="proses" {{ old('status') == 'proses' ? 'selected' : '' }}>Proses</option>
+                        <option value="selesai" {{ old('status') == 'selesai' ? 'selected' : '' }}>Selesai</option>
                     </select>
                     @error('status') <span class="text-sm text-red-500">{{ $message }}</span> @enderror
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Tanggal Kasus</label>
-                    <input type="date" name="tanggal" class="mt-1 block w-full border border-gray-300 rounded-md p-2">
+                    <input type="date" name="tanggal" value="{{ old('tanggal') }}" class="mt-1 block w-full border border-gray-300 rounded-md p-2">
                     @error('tanggal') <span class="text-sm text-red-500">{{ $message }}</span> @enderror
                 </div>
             </div>

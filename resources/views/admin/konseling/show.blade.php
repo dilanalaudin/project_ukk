@@ -16,13 +16,12 @@
                 <p class="text-sm text-gray-500">Siswa</p>
                 <p class="text-lg font-semibold">{{ $konseling->siswa->nama_lengkap ?? 'N/A' }}</p>
                 <p class="text-sm text-gray-600">{{ $konseling->siswa->kelas ?? 'N/A' }}</p>
+                <p class="text-sm text-gray-600">{{ $konseling->siswa->jurusan ?? 'N/A' }}</p>
+                <p class="text-sm text-gray-600">{{ $konseling->siswa->jenis_kelamin === 'Laki-laki' ? 'Laki-laki' : 'Perempuan' }}</p>
             </div>
             <div>
                 <p class="text-sm text-gray-500">Status</p>
-                <span class="inline-block px-3 py-1 rounded-full text-sm font-semibold 
-                    {{ $konseling->status === 'disetujui' ? 'bg-green-100 text-green-800' : ($konseling->status === 'ditolak' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800') }}">
-                    {{ ucfirst($konseling->status) }}
-                </span>
+                <x-model-status-badge :status="$konseling->status" class="px-3 py-1 text-sm" />
             </div>
             <div>
                 <p class="text-sm text-gray-500">Tanggal Pengajuan</p>

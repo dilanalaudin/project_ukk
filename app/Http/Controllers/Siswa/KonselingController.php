@@ -7,6 +7,9 @@ use App\Models\Konseling;
 use App\Models\Siswa;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\User;
+use App\Notifications\NewCounselingRequest;
+use Illuminate\Support\Facades\Notification;
 
 class KonselingController extends Controller
 {
@@ -20,16 +23,10 @@ class KonselingController extends Controller
      */
     public function index(Request $request)
     {
-        $user = Auth::user();
-        $siswa = null;
-        if (Siswa::where('user_id', $user->id)->exists()) {
-            $siswa = Siswa::where('user_id', $user->id)->first();
-        } elseif (Siswa::where('email', $user->email)->exists()) {
-            $siswa = Siswa::where('email', $user->email)->first();
-        }
+        $siswa = $this->getSiswa();
 
         if (!$siswa) {
-            abort(404, 'Siswa tidak ditemukan.');
+            return redirect()->route('dashboard')->with('error', 'Data siswa tidak ditemukan. Silakan hubungi admin.');
         }
 
         // Pengajuan konseling (jadwal) siswa
@@ -46,6 +43,12 @@ class KonselingController extends Controller
      */
     public function create()
     {
+        $siswa = $this->getSiswa();
+
+        if (!$siswa) {
+            return redirect()->route('dashboard')->with('error', 'Data siswa tidak ditemukan. Profil Anda belum terhubung dengan data siswa.');
+        }
+
         return view('siswa.konseling.create');
     }
 
@@ -54,8 +57,7 @@ class KonselingController extends Controller
      */
     public function store(Request $request)
     {
-        $user = Auth::user();
-        $siswa = Siswa::where('user_id', $user->id)->first() ?? Siswa::where('email', $user->email)->first();
+        $siswa = $this->getSiswa();
 
         if (!$siswa) {
             return redirect()->route('dashboard')->with('error', 'Data siswa tidak ditemukan');
@@ -76,7 +78,12 @@ class KonselingController extends Controller
             'status' => 'proses',
         ]);
 
-        return redirect()->route('admin.konseling.index')->with('success', 'Pengajuan konseling berhasil dikirim. Lihat pengajuan Anda di daftar konseling.');
+        // Kirim notifikasi ke Admin
+        $admins = User::where('role', 'admin')->get();
+        $user = Auth::user();
+        Notification::send($admins, new NewCounselingRequest($siswa->nama ?? $user->name, $validated['tanggal']));
+
+        return redirect()->route('siswa.konseling.index')->with('success', 'Pengajuan konseling berhasil dikirim. Lihat pengajuan Anda di daftar konseling.');
     }
 
     /**
@@ -84,8 +91,7 @@ class KonselingController extends Controller
      */
     public function show(Konseling $konseling)
     {
-        $user = Auth::user();
-        $siswa = Siswa::where('user_id', $user->id)->first() ?? Siswa::where('email', $user->email)->first();
+        $siswa = $this->getSiswa();
 
         if (!$siswa || $konseling->siswa_id !== $siswa->id) {
             abort(403);
@@ -99,8 +105,7 @@ class KonselingController extends Controller
      */
     public function history()
     {
-        $user = Auth::user();
-        $siswa = Siswa::where('user_id', $user->id)->first() ?? Siswa::where('email', $user->email)->first();
+        $siswa = $this->getSiswa();
 
         if (!$siswa) {
             return redirect()->route('dashboard')->with('error', 'Data siswa tidak ditemukan');
@@ -120,13 +125,7 @@ class KonselingController extends Controller
      */
     public function notes()
     {
-        $user = Auth::user();
-        $siswa = null;
-        if (Siswa::where('user_id', $user->id)->exists()) {
-            $siswa = Siswa::where('user_id', $user->id)->first();
-        } elseif (Siswa::where('email', $user->email)->exists()) {
-            $siswa = Siswa::where('email', $user->email)->first();
-        }
+        $siswa = $this->getSiswa();
 
         if (!$siswa) {
             abort(404, 'Siswa tidak ditemukan.');
@@ -135,5 +134,13 @@ class KonselingController extends Controller
         // Return only 'note' typed records (past counseling)
         $konselings = Konseling::note()->where('siswa_id', $siswa->id)->orderBy('tanggal', 'desc')->paginate(10);
         return view('siswa.notes.index', compact('konselings'));
+    }
+    /**
+     * Helper untuk mendapatkan data siswa dari user yang login
+     */
+    private function getSiswa()
+    {
+        $user = Auth::user();
+        return Siswa::where('user_id', $user->id)->first() ?? Siswa::where('email', $user->email)->first();
     }
 }

@@ -41,6 +41,19 @@
     </div>
 
     <div>
+        <label class="block text-sm font-medium text-gray-700">Akun User (Pemilik)</label>
+        <select name="user_id" class="mt-1 block w-full border rounded-md p-2">
+            <option value="">Tidak ada / pilih berdasarkan email</option>
+            @if(isset($siswaUsers) && $siswaUsers->count())
+                @foreach($siswaUsers as $userOption)
+                    <option value="{{ $userOption->id }}" {{ ((string)$value('user_id') === (string)$userOption->id) ? 'selected' : '' }}>{{ $userOption->name }} <{{ $userOption->email }}></option>
+                @endforeach
+            @endif
+        </select>
+        @error('user_id') <span class="text-sm text-red-500">{{ $message }}</span> @enderror
+    </div>
+
+    <div>
         <label class="block text-sm font-medium text-gray-700">Alamat</label>
         <textarea name="alamat" class="mt-1 block w-full border rounded-md p-2">{{ $value('alamat') }}</textarea>
         @error('alamat') <span class="text-sm text-red-500">{{ $message }}</span> @enderror

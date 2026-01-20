@@ -6,7 +6,9 @@
 <div class="w-full">
     <div class="flex items-center justify-between mb-4">
         <h1 class="text-2xl font-bold">Catatan Kasus</h1>
-        <a href="{{ route('admin.kasus.create') }}" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">+ Tambah Kasus</a>
+        @if((auth()->user()->role ?? '') === 'admin')
+            <a href="{{ route('admin.kasus.create') }}" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">+ Tambah Kasus</a>
+        @endif
     </div>
 
     @if (session('success'))
@@ -19,7 +21,7 @@
                 <tr>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama Siswa</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Jenis Kasus</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Severity</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tingkat</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Poin</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tanggal</th>
@@ -32,7 +34,7 @@
                         <td class="px-6 py-4 text-sm">{{ $item->siswa->nama_lengkap ?? 'N/A' }}</td>
                         <td class="px-6 py-4 text-sm">{{ $item->jenis }}</td>
                         <td class="px-6 py-4 text-sm">
-                            <span class="px-2 py-1 rounded-full text-xs font-semibold {{ $item->severity === 'berat' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800' }}">
+                            <span class="px-2 py-1 rounded-full text-xs font-semibold {{ $item->severity === 'berat' ? 'bg-red-100 text-red-800' : ($item->severity === 'sedang' ? 'bg-orange-100 text-orange-800' : 'bg-emerald-100 text-emerald-800') }}">
                                 {{ ucfirst($item->severity) }}
                             </span>
                         </td>
@@ -44,12 +46,16 @@
                         </td>
                         <td class="px-6 py-4 text-sm">{{ $item->tanggal ? $item->tanggal->format('d M Y') : '-' }}</td>
                         <td class="px-6 py-4 text-sm space-x-2">
-                            <a href="{{ route('admin.kasus.edit', $item) }}" class="text-indigo-600 hover:text-indigo-800">Ubah</a>
-                            <form action="{{ route('admin.kasus.destroy', $item) }}" method="POST" style="display:inline;">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" onclick="return confirm('Yakin?')" class="text-red-600 hover:text-red-800">Hapus</button>
-                            </form>
+                            @if((auth()->user()->role ?? '') === 'admin')
+                                <a href="{{ route('admin.kasus.edit', $item->id) }}" class="text-indigo-600 hover:text-indigo-800">Ubah</a>
+                                <form action="{{ route('admin.kasus.destroy', $item->id) }}" method="POST" style="display:inline;">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" onclick="return confirm('Yakin?')" class="text-red-600 hover:text-red-800">Hapus</button>
+                                </form>
+                            @else
+                                <a href="{{ route('siswa.kasus.show', $item->id) }}" class="text-indigo-600 hover:text-indigo-800 font-medium text-xs">Lihat Detail</a>
+                            @endif
                         </td>
                     </tr>
                 @empty

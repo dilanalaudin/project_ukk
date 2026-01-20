@@ -7,6 +7,7 @@ use App\Http\Controllers\SiswaController;
 use App\Http\Controllers\VisiMisiController;
 use App\Http\Controllers\KasusController;
 use App\Http\Controllers\KonselingController;
+use App\Http\Controllers\ChatbotController;
 
 /*
 |--------------------------------------------------------------------------
@@ -68,15 +69,34 @@ Route::prefix('siswa')
     ->group(function () {
         Route::get('jadwals', [App\Http\Controllers\Siswa\JadwalController::class, 'index'])->name('jadwals.index');
         Route::get('notes', [App\Http\Controllers\Siswa\KonselingController::class, 'notes'])->name('notes.index');
+        // Kasus view untuk siswa (hanya melihat kasus miliknya)
+        Route::get('kasus', [App\Http\Controllers\KasusController::class, 'index'])->name('kasus.index');
+        Route::get('kasus/{kasus}', [App\Http\Controllers\KasusController::class, 'show'])->name('kasus.show');
         
         // Pengajuan Konseling
         Route::get('konseling', [App\Http\Controllers\Siswa\KonselingController::class, 'index'])->name('konseling.index');
         Route::get('konseling/create', [App\Http\Controllers\Siswa\KonselingController::class, 'create'])->name('konseling.create');
         Route::post('konseling', [App\Http\Controllers\Siswa\KonselingController::class, 'store'])->name('konseling.store');
-        Route::get('konseling/{konseling}', [App\Http\Controllers\Siswa\KonselingController::class, 'show'])->name('konseling.show');
+        Route::get('konseling/{konseling}', [App\Http\Controllers\Siswa\KonselingController::class, 'show'])
+            ->name('konseling.show')
+            ->whereNumber('konseling');
         
         // Riwayat Konseling
         Route::get('konseling-history', [App\Http\Controllers\Siswa\KonselingController::class, 'history'])->name('konseling.history');
+    });
+
+/*
+|--------------------------------------------------------------------------
+| Admin Student Management (URL: siswa/siswas)
+|--------------------------------------------------------------------------
+*/
+Route::prefix('siswa')
+    ->name('admin.') // Keep admin. as proper name prefix for admin actions
+    ->middleware(['auth'])
+    ->group(function () {
+        // Route untuk menautkan Siswa lama ke User berdasarkan email (admin only)
+        Route::get('siswas/link-users', [SiswaController::class, 'linkUsers'])->name('siswas.linkUsers');
+        Route::resource('siswas', SiswaController::class);
     });
 
 /*
@@ -95,8 +115,8 @@ Route::prefix('admin')
             return app(DashboardController::class)->index(request());
         })->name('dashboard');
 
-        // CRUD Siswa (path: /admin/siswas/*, names: admin.siswas.*)
-        Route::resource('siswas', SiswaController::class);
+        // Note: Siswa routes moved to 'siswa' prefix group below
+
 
         // Visi Misi Management (path: /admin/visi-misi/*)
         Route::get('visi-misi', [VisiMisiController::class, 'index'])->name('visi-misi.index');
@@ -104,8 +124,14 @@ Route::prefix('admin')
         Route::put('visi-misi', [VisiMisiController::class, 'update'])->name('visi-misi.update');
 
         // Catatan Kasus Management (path: /admin/kasus/*)
-        Route::resource('kasus', KasusController::class);
+        Route::resource('kasus', KasusController::class)
+    ->parameters(['kasus' => 'kasus']);
+
 
         // Konseling Management (path: /admin/konseling/*)
+        Route::get('konseling/riwayat', [KonselingController::class, 'riwayat'])->name('konseling.riwayat');
         Route::resource('konseling', KonselingController::class, ['except' => ['create', 'store']]);
     });
+
+    Route::get('/chat', [ChatbotController::class, 'index'])->name('chat.index');
+Route::post('/chat/send', [ChatbotController::class, 'send'])->name('chat.send');

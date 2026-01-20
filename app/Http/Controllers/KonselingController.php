@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Konseling;
 use App\Models\Siswa;
 use Illuminate\Http\Request;
+use App\Models\User;
+use App\Notifications\CounselingStatusUpdated;
 
 class KonselingController extends Controller
 {
@@ -25,6 +27,19 @@ class KonselingController extends Controller
             ->paginate(10);
 
         return view('admin.konseling.index', compact('konselings'));
+    }
+
+    /**
+     * Lihat riwayat konseling (yang sudah selesai/catatan)
+     */
+    public function riwayat()
+    {
+        $konselings = Konseling::with('siswa')
+            ->whereIn('type', [Konseling::TYPE_NOTE, Konseling::TYPE_KONSELING])
+            ->orderBy('tanggal', 'desc')
+            ->paginate(10);
+
+        return view('admin.konseling.riwayat', compact('konselings'));
     }
 
     /**
@@ -51,6 +66,7 @@ class KonselingController extends Controller
     {
         $validated = $request->validate([
             'status' => 'required|in:proses,disetujui,ditolak,selesai',
+            'tanggapan' => 'nullable|string|max:1000',
             'ringkasan_masalah' => 'nullable|string|max:500',
             'solusi' => 'nullable|string|max:500',
             'jadwal_berikutnya' => 'nullable|date|after:today',
@@ -58,9 +74,23 @@ class KonselingController extends Controller
 
         $konseling->update($validated);
 
-        // Jika disetujui dan sudah ada solusi, ubah type menjadi konseling (catatan hasil)
-        if ($validated['status'] === 'disetujui' && $validated['solusi']) {
+        // Jika status dikembalikan ke proses, kembalikan tipe ke jadwal (agar masuk ke list pengajuan)
+        if ($validated['status'] === 'proses') {
+            $konseling->update(['type' => Konseling::TYPE_JADWAL]);
+        }
+        // Jika disetujui dan sudah ada solusi, ubah type menjadi konseling (catatan hasil/history)
+        elseif ($validated['status'] === 'disetujui' && $validated['solusi']) {
             $konseling->update(['type' => Konseling::TYPE_KONSELING]);
+        } elseif ($validated['status'] === 'selesai') {
+             // Opsional: jika selesai, bisa juga dianggap history (tergantung kebutuhan, tapi biasanya selesai = history)
+             $konseling->update(['type' => Konseling::TYPE_KONSELING]);
+        }
+
+
+
+        // Kirim notifikasi ke Siswa
+        if ($konseling->siswa && $konseling->siswa->user) {
+            $konseling->siswa->user->notify(new CounselingStatusUpdated($validated['status'], $validated['tanggapan'] ?? null));
         }
 
         return redirect()->route('admin.konseling.index')->with('success', 'Hasil konseling berhasil disimpan');

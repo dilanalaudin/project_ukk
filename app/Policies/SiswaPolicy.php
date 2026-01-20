@@ -31,10 +31,9 @@ class SiswaPolicy
      */
     public function viewAny(User $user)
     {
-        // Setelah before() ditambahkan, metode ini bisa dihapus, tapi kita biarkan 
-        // agar kompatibel dengan Gate::define() Anda.
-        // return ($user->role ?? '') === 'admin';
-        return false; // Karena sudah ditangani di before(), ini tidak akan pernah tercapai untuk admin
+        // Izinkan pengguna terotentikasi melihat daftar.
+        // Pembatasan data (hanya melihat milik sendiri) akan ditangani di controller.
+        return true;
     }
 
     /**

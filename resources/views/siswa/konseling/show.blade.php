@@ -26,10 +26,7 @@
             </div>
             <div>
                 <p class="text-sm text-gray-500">Status</p>
-                <span class="inline-block px-3 py-1 rounded-full text-sm font-semibold 
-                    {{ $konseling->status === 'disetujui' ? 'bg-green-100 text-green-800' : ($konseling->status === 'ditolak' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800') }}">
-                    {{ ucfirst($konseling->status) }}
-                </span>
+                <x-model-status-badge :status="$konseling->status" class="px-3 py-1 text-sm" />
             </div>
         </div>
 
@@ -37,6 +34,13 @@
             <p class="text-sm text-gray-500 mb-2">Ringkasan Masalah</p>
             <p class="text-gray-700">{{ $konseling->ringkasan_masalah ?? 'Belum ada' }}</p>
         </div>
+
+        @if($konseling->tanggapan)
+        <div class="mb-6 pb-6 border-b bg-indigo-50 p-4 rounded">
+            <p class="text-sm font-bold text-indigo-900 mb-2">Balasan / Tanggapan Admin</p>
+            <p class="text-indigo-800">{{ $konseling->tanggapan }}</p>
+        </div>
+        @endif
 
         @if($konseling->solusi)
         <div class="mb-6 pb-6 border-b bg-blue-50 p-4 rounded">

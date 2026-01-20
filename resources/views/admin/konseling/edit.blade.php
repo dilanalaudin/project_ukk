@@ -18,6 +18,14 @@
                     <p class="text-sm text-gray-500">Kelas</p>
                     <p class="font-semibold">{{ $siswa->kelas }}</p>
                 </div>
+                <div>
+                    <p class="text-sm text-gray-500">Jurusan</p>
+                    <p class="font-semibold">{{ $siswa->jurusan }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">Jenis Kelamin</p>
+                    <p class="font-semibold">{{ ($siswa->jenis_kelamin === 'L' || $siswa->jenis_kelamin === 'Laki-laki') ? 'Laki-laki' : 'Perempuan' }}</p>
+                </div>
             </div>
         </div>
 
@@ -72,7 +80,7 @@
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700">Jadwal Temu Berikutnya</label>
                 <input type="date" name="jadwal_berikutnya" value="{{ $konseling->jadwal_berikutnya?->format('Y-m-d') }}" 
-                    class="mt-1 block w-full border border-gray-300 rounded-md p-2">
+                    class="mt-1 block w-full border border-gray-300 rounded-md p-2" min="{{ date('Y-m-d') }}">
                 @error('jadwal_berikutnya') <span class="text-sm text-red-500">{{ $message }}</span> @enderror
             </div>
 
