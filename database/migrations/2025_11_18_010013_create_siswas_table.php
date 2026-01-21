@@ -32,6 +32,12 @@ return new class extends Migration
 
     public function down(): void
     {
+        // Drop dependent tables first
+        Schema::dropIfExists('konselings');
+        Schema::dropIfExists('kasus');
+        Schema::dropIfExists('jadwals');
+        
+        // Then drop siswas
         Schema::dropIfExists('siswas');
     }
 };

@@ -31,7 +31,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('konselings', function (Blueprint $table) {
-            $table->dropColumn(['topik', 'ringkasan_masalah', 'solusi', 'jadwal_berikutnya', 'status']);
+            $table->dropColumn(['topik', 'ringkasan_masalah', 'solusi', 'jadwal_berikutnya']);
         });
     }
 };
